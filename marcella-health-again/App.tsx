@@ -8,11 +8,14 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { HeroScene } from './components/QuantumScene';
 import { ArrowDown, Menu, X, BookOpen, ShieldCheck, Factory, Globe, Star, Eye, Send } from 'lucide-react';
+import { supabase } from './supabaseClient';
 
 const App: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [formSubmitted, setFormSubmitted] = useState(false);
+const [menuOpen, setMenuOpen] = useState(false);
+const [formSubmitted, setFormSubmitted] = useState(false);
+const [isSubmitting, setIsSubmitting] = useState(false);
+const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -37,9 +40,35 @@ const App: React.FC = () => {
     }
   };
 
-  const handleContactSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleContactSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setSubmitError(null);
+  setIsSubmitting(true);
+
+  const form = e.currentTarget;
+  const formData = new FormData(form);
+
+  const { error } = await supabase
+    .from('Marcella Health Website contacts')
+    .insert({
+      first_name: formData.get('first_name'),
+      last_name: formData.get('last_name'),
+      company_name: formData.get('company_name'),
+      position: formData.get('position'),
+      message: formData.get('message'),
+    });
+
+  if (error) {
+    console.error(error);
+    setSubmitError('Something went wrong. Please try again.');
+  } else {
     setFormSubmitted(true);
+    form.reset();
+  }
+
+  setIsSubmitting(false);
+};
+
   };
 
   return (
@@ -390,20 +419,22 @@ const App: React.FC = () => {
                             <label htmlFor="firstName" className="text-sm font-bold text-slate-700 uppercase tracking-wider">First Name</label>
                             <input 
                                 type="text" 
-                                id="firstName" 
+                                id="firstName"
+                                name="first_name"
                                 required 
                                 className="w-full px-4 py-3 bg-white rounded-lg border border-slate-300 focus:border-marcella-primary focus:ring-2 focus:ring-marcella-primary/20 outline-none transition-all"
-                                placeholder="Jane"
+                                placeholder="Your First Name"
                             />
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="lastName" className="text-sm font-bold text-slate-700 uppercase tracking-wider">Last Name</label>
                             <input 
                                 type="text" 
-                                id="lastName" 
+                                id="lastName"
+                                name="last_name"
                                 required 
                                 className="w-full px-4 py-3 bg-white rounded-lg border border-slate-300 focus:border-marcella-primary focus:ring-2 focus:ring-marcella-primary/20 outline-none transition-all"
-                                placeholder="Doe"
+                                placeholder="Your Last Name"
                             />
                         </div>
                     </div>
@@ -414,8 +445,9 @@ const App: React.FC = () => {
                             <input 
                                 type="text" 
                                 id="company" 
+                                name="company_name" 
                                 className="w-full px-4 py-3 bg-white rounded-lg border border-slate-300 focus:border-marcella-primary focus:ring-2 focus:ring-marcella-primary/20 outline-none transition-all"
-                                placeholder="Company Ltd."
+                                placeholder="Your Company Name"
                             />
                         </div>
                         <div className="space-y-2">
@@ -423,6 +455,7 @@ const App: React.FC = () => {
                             <input 
                                 type="text" 
                                 id="position" 
+                                name="position"
                                 className="w-full px-4 py-3 bg-white rounded-lg border border-slate-300 focus:border-marcella-primary focus:ring-2 focus:ring-marcella-primary/20 outline-none transition-all"
                                 placeholder="Manager"
                             />
@@ -433,6 +466,7 @@ const App: React.FC = () => {
                         <label htmlFor="message" className="text-sm font-bold text-slate-700 uppercase tracking-wider">Message</label>
                         <textarea 
                             id="message" 
+                            name="message"
                             rows={5} 
                             required 
                             className="w-full px-4 py-3 bg-white rounded-lg border border-slate-300 focus:border-marcella-primary focus:ring-2 focus:ring-marcella-primary/20 outline-none transition-all resize-none"
@@ -442,11 +476,17 @@ const App: React.FC = () => {
 
                     <div className="flex flex-col items-center">
                         <button 
-                            type="submit" 
-                            className="px-10 py-4 bg-marcella-dark text-white font-medium tracking-wide rounded-full hover:bg-marcella-primary transition-colors duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2"
-                        >
-                            Submit Inquiry
-                        </button>
+  type="submit"
+  disabled={isSubmitting}
+  className="px-10 py-4 bg-marcella-dark text-white font-medium tracking-wide rounded-full hover:bg-marcella-primary transition-colors duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+>
+  {isSubmitting ? 'Sending…' : 'Submit Inquiry'}
+</button>
+                      {submitError && (
+  <p className="mt-4 text-sm text-red-600 text-center">
+    {submitError}
+  </p>
+)}
                     </div>
                 </form>
 
