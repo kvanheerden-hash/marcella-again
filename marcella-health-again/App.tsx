@@ -69,8 +69,6 @@ const [submitError, setSubmitError] = useState<string | null>(null);
   setIsSubmitting(false);
 };
 
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 selection:bg-marcella-primary selection:text-white">
       
