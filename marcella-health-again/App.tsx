@@ -49,14 +49,14 @@ const [submitError, setSubmitError] = useState<string | null>(null);
   const formData = new FormData(form);
 
   const { error } = await supabase
-    .from('Marcella Health Website contacts')
-    .insert({
-      first_name: formData.get('first_name'),
-      last_name: formData.get('last_name'),
-      company_name: formData.get('company_name'),
-      position: formData.get('position'),
-      message: formData.get('message'),
-    });
+  .from('Contacts')
+  .insert({
+    first_name: formData.get('first_name'),
+    last_name: formData.get('last_name'),
+    company_name: formData.get('company_name'),
+    position: formData.get('position'),
+    message: formData.get('message'),
+  });
 
   if (error) {
     console.error(error);
